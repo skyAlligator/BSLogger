@@ -2,88 +2,45 @@ package com.ironn.bslogger;
 
 import android.app.Activity;
 import android.content.Intent;
-//import android.support.v7.app.AppCompatActivity;
+import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.util.Log;
-import android.widget.CheckBox;
+import android.preference.PreferenceManager;
 import android.widget.CompoundButton;
-import android.widget.TextView;
+import android.widget.ToggleButton;
 
-public class LoggerActivity extends Activity implements LoggerManager.LogListener {
 
-    private static final String TAG = "LoggerActivity";
-    private TextView logTextView;
-    private LoggerManager loggerManager;
+public class LoggerActivity extends Activity {
+
+    private static final String SERVICE_STARTED = "serviceStarted";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_logger_main);
-        logTextView = (TextView) findViewById(R.id.main_logTextView);
-        CheckBox enableLogChbx = (CheckBox) findViewById(R.id.main_checkBox);
+        setContentView(R.layout.activity_log_main);
 
-        loggerManager = LoggerManager.startLog();
-        loggerManager.setLogListener(this);
+        final SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(LoggerActivity.this);
+        ToggleButton toggleButton = (ToggleButton) findViewById(R.id.toggleButton);
 
-        enableLogChbx.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+        toggleButton.setChecked(preferences.getBoolean(SERVICE_STARTED, false));
+        toggleButton.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+
             @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean stopLog) {
-                loggerManager = loggerManager.setStopLog(stopLog);
-                loggerManager.setLogListener(LoggerActivity.this);
-            }
-        });
+            public void onCheckedChanged(CompoundButton compoundButton, boolean checked) {
 
-       /* new Thread(new Runnable() {
-            @Override
-            public void run() {
-                while (true) {
-                    Log.d(TAG, "my debug log testing");
-                    try {
-                        Thread.sleep(1000);
-                    } catch (InterruptedException ignored) {
-                    }
+
+                Intent service = new Intent(LoggerActivity.this, BubbleLoggerService.class);
+
+                if (checked) {
+                    startService(service);
+                    preferences.edit().putBoolean(SERVICE_STARTED, true).apply();
+                } else {
+                    stopService(service);
+                    preferences.edit().putBoolean(SERVICE_STARTED, false).apply();
                 }
-            }
-        }).start();*/
-        startService(new Intent(this, BubbleLoggerService.class));
-    }
 
-    @Override
-    public void updateLog(final String log) {
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                logTextView.append(log);
-                logTextView.append("\n");
             }
         });
+
     }
 
-    @Override
-    public void logStopped() {
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                logTextView.append("Log Stopped");
-                logTextView.append("\n");
-            }
-        });
-    }
-
-    @Override
-    public void clearLog() {
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                logTextView.setText("");
-            }
-        });
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        loggerManager.setStopLog(true);
-        stopService(new Intent(this, BubbleLoggerService.class));
-    }
 }

@@ -5,17 +5,25 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.PixelFormat;
+import android.os.Handler;
 import android.os.IBinder;
+import android.support.annotation.NonNull;
 import android.view.Gravity;
-import android.view.KeyEvent;
+import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.widget.Button;
+import android.widget.TextView;
 
-public class BubbleLoggerService extends Service {
+public class BubbleLoggerService extends Service implements LoggerManager.LogListener, LogBubble.LongHoldListener {
 
+    private static final String TAG = "BubbleLoggerService";
     private WindowManager windowManager;
     private LogBubble logBubble;
+    private TextView logTextView;
+    private View layout;
+    private Handler handler;
+    private boolean logViewAdded;
 
     public BubbleLoggerService() {
     }
@@ -28,60 +36,100 @@ public class BubbleLoggerService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
-        initBubble();
-    }
 
-    @Override
-    public int onStartCommand(Intent intent, int flags, int startId) {
-        return super.onStartCommand(intent, flags, startId);
+        handler = new Handler();
+        windowManager = (WindowManager) getBaseContext().getSystemService(Context.WINDOW_SERVICE);
+        initBubble();
+        createLogView();
+
+        /*new Thread(new Runnable() {
+            @Override
+            public void run() {
+                while (true) {
+                    Log.d(TAG, "my debug log testing");
+                    try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException ignored) {
+                    }
+                }
+            }
+        }).start();*/
     }
 
     private void initBubble() {
-        windowManager = (WindowManager) getBaseContext().getSystemService(Context.WINDOW_SERVICE);
-
-       /* WindowManager.LayoutParams layoutParams = new WindowManager.LayoutParams(WindowManager.LayoutParams.FIRST_SUB_WINDOW);
-        layoutParams.width = 300;
-        layoutParams.height = 300;
-
-        layoutParams.format = PixelFormat.RGBA_8888;
-        layoutParams.flags =
-                WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN
-                        | WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED;*/
-//        layoutParams.token = getWindow().getDecorView().getRootView().getWindowToken();
-
-        //Feel free to inflate here
         logBubble = new LogBubble(this);
-        logBubble.setBackgroundColor(Color.RED);
+        logBubble.setBackgroundColor(Color.TRANSPARENT);
+        logBubble.setLongHoldListener(this);
+        windowManager.addView(logBubble, getWindowManagerParams(0, 100, WindowManager.LayoutParams.WRAP_CONTENT, WindowManager.LayoutParams.WRAP_CONTENT));
+    }
 
-        //Must wire up back button, otherwise it's not sent to our activity
-        /*logBubble.setOnKeyListener(new View.OnKeyListener() {
-            @Override
-            public boolean onKey(View v, int keyCode, KeyEvent event) {
-                if (keyCode == KeyEvent.KEYCODE_BACK) {
-                    onBackPressed();
-                }
-                return true;
-            }
-        });*/
+    private void addLogView() {
+        if (logViewAdded)
+            return;
 
+        windowManager.addView(layout, getWindowManagerParams(0, 0, 1500, 1000));
+        LoggerManager.runLog(true, BubbleLoggerService.this);
+        logViewAdded = true;
+    }
+
+    @NonNull
+    private WindowManager.LayoutParams getWindowManagerParams(int x, int y, int width, int height) {
         WindowManager.LayoutParams params = new WindowManager.LayoutParams(
-                WindowManager.LayoutParams.WRAP_CONTENT,
-                WindowManager.LayoutParams.WRAP_CONTENT,
+                width,
+                height,
                 WindowManager.LayoutParams.TYPE_PHONE,
                 WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
                 PixelFormat.TRANSLUCENT);
 
         params.gravity = Gravity.TOP | Gravity.LEFT;
-        params.x = 0;
-        params.y = 100;
-        windowManager.addView(logBubble, params);
+        params.x = x;
+        params.y = y;
+        return params;
+    }
+
+    private void createLogView() {
+        LayoutInflater inflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
+        layout = inflater.inflate(R.layout.logger_layout, null, false);
+        logTextView = (TextView) layout.findViewById(R.id.main_logTextView);
+        Button closeButton = (Button) layout.findViewById(R.id.logger_layout_button);
+
+        closeButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                LoggerManager.runLog(false, null);
+                logTextView.setText("");
+                windowManager.removeView(layout);
+                logViewAdded = false;
+            }
+        });
+    }
+
+    @Override
+    public void updateLog(final String log) {
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                logTextView.append(log);
+            }
+        });
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
+        LoggerManager.runLog(false, null);
         if (logBubble != null)
             windowManager.removeView(logBubble);
 
+    }
+
+    @Override
+    public void onLongPressed() {
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                addLogView();
+            }
+        });
     }
 }

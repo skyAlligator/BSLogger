@@ -1,34 +1,34 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="#a6a6a6"
     android:paddingBottom="@dimen/activity_vertical_margin"
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
-    android:paddingTop="@dimen/activity_vertical_margin"
-    tools:context=".LoggerActivity">
+    android:paddingTop="@dimen/activity_vertical_margin">
 
     <ScrollView
         style="@style/scrollbar_shape_style"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:layout_below="@+id/logger_layout_button">
 
         <TextView
             android:id="@+id/main_logTextView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/app_name"/>
+            android:text="@string/app_name"
+            android:textColor="#680606" />
     </ScrollView>
 
-
-    <CheckBox
-        android:id="@+id/main_checkBox"
+    <Button
+        android:id="@+id/logger_layout_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentEnd="true"
-        android:layout_alignParentRight="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
         android:layout_alignParentTop="true"
-        android:text="@string/stop_log"/>
+        android:text="@string/close_log"
+        android:textColor="#230606" />
 </RelativeLayout>

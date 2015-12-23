@@ -13,58 +13,36 @@ import java.util.ArrayList;
  */
 public class LoggerManager extends Thread {
 
+    public static final String LOGCAT_CMD = "logcat";
     private static final String TAG = "LoggerManager";
-    public static final String LOGCAT_CMD = "logcat -v time";
-    private static LogThread logThread;
-    private boolean stopLog;
+    private static LoggerManager loggerManager;
+    private boolean runLog = true;
     private LogListener logListener;
-    private static LoggerManager instance;
     private int index;
     private ArrayList<String> lines = new ArrayList<>();
 
-    public interface LogListener {
+    public static LoggerManager runLog(boolean runLog, LogListener logListener) {
+        if (!runLog) {
+            if (loggerManager != null) {
+                loggerManager.runLog = false;
+                loggerManager.logListener = null;
+                loggerManager = null;
+                return null;
+            }
 
-        /**
-         * this update the log line from the logcat stream.
-         *
-         * @param log log line from logcat
-         */
-        void updateLog(String log);
+        } else if (loggerManager == null || !loggerManager.isAlive()) {
+            loggerManager = new LoggerManager();
+            loggerManager.logListener = logListener;
+            loggerManager.new LogThread().start();
+            loggerManager.start();
+        } else
+            Log.d(TAG, "log already Running");
 
-        /**
-         * called when logcat stopped or interrupted by exception
-         */
-        void logStopped();
-
-        /**
-         * clear the log in the buffer
-         */
-        void clearLog();
-
+        return loggerManager;
     }
 
     public void setLogListener(LogListener logListener) {
         this.logListener = logListener;
-    }
-
-    public LoggerManager setStopLog(boolean stopLog) {
-        if (!stopLog) {
-            instance = null;
-            startLog();
-        }
-        this.stopLog = stopLog;
-        return instance;
-    }
-
-    public static LoggerManager startLog() {
-        if (instance == null || !instance.isAlive()) {
-            instance = new LoggerManager();
-            logThread = instance.new LogThread();
-            logThread.start();
-            instance.start();
-        } else
-            Log.d(TAG, "log already Running");
-        return instance;
     }
 
     @Override
@@ -73,7 +51,7 @@ public class LoggerManager extends Thread {
     }
 
     private void startPrintLog() {
-        while (!stopLog) {
+        while (runLog) {
 
             int size = lines.size();
             if (logListener != null)
@@ -85,23 +63,37 @@ public class LoggerManager extends Thread {
             } catch (InterruptedException ignored) {
             }
         }
-        if (logListener != null) logListener.logStopped();
+
+    }
+
+    public interface LogListener {
+
+        /**
+         * this update the log line from the logcat stream.
+         *
+         * @param log log line from logcat
+         */
+        void updateLog(String log);
+
     }
 
     class LogThread extends Thread {
 
         @Override
         public void run() {
-            while (!stopLog) {
+            while (runLog) {
                 getLog();
                 lines.clear();
                 index = 0;
-                if (logListener != null) logListener.clearLog();
+                try {
+                    sleep(500);
+                } catch (InterruptedException ignored) {
+                }
+//                if (logListener != null) logListener.clearLog();
             }
         }
 
         private void getLog() {
-            Log.d(TAG, "log started");
             BufferedReader bufferedReader = null;
             try {
                 Process process = Runtime.getRuntime().exec(LOGCAT_CMD);
@@ -110,7 +102,7 @@ public class LoggerManager extends Thread {
                 while ((line = bufferedReader.readLine()) != null) {
                     if (!line.isEmpty())
                         lines.add(line + "\n");
-                    if (stopLog) break;
+                    if (!runLog) break;
                 }
             } catch (Exception e) {
                 Log.d(TAG, e.toString());
@@ -121,7 +113,7 @@ public class LoggerManager extends Thread {
                     } catch (IOException ignored) {
                     }
             }
-            Log.d(TAG, "log closed");
+            Log.d(TAG, "stream closed ");
         }
     }
 

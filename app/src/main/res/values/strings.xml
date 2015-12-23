@@ -1,4 +1,4 @@
 <resources>
     <string name="app_name">BSLogger</string>
-    <string name="stop_log">Stop Log</string>
+    <string name="close_log">close</string>
 </resources>
