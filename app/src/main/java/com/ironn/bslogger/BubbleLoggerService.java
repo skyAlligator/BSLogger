@@ -41,19 +41,6 @@ public class BubbleLoggerService extends Service implements LoggerManager.LogLis
         windowManager = (WindowManager) getBaseContext().getSystemService(Context.WINDOW_SERVICE);
         initBubble();
         createLogView();
-
-        /*new Thread(new Runnable() {
-            @Override
-            public void run() {
-                while (true) {
-                    Log.d(TAG, "my debug log testing");
-                    try {
-                        Thread.sleep(1000);
-                    } catch (InterruptedException ignored) {
-                    }
-                }
-            }
-        }).start();*/
     }
 
     private void initBubble() {
