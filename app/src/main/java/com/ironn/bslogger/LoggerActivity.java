@@ -4,34 +4,22 @@ import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.os.Environment;
 import android.preference.PreferenceManager;
-import android.util.Log;
 import android.widget.CompoundButton;
-import android.widget.Toast;
+import android.widget.EditText;
 import android.widget.ToggleButton;
-
-import java.io.DataOutputStream;
-import java.io.File;
-import java.io.IOException;
 
 
 public class LoggerActivity extends Activity {
 
     private static final String SERVICE_STARTED = "serviceStarted";
     private static final String TAG = "LoggerActivity";
+//    private boolean run;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_log_main);
-
-        requestReadLogPermission();
-//        checkRootCommand();
-//        File directory = Environment.getExternalStorageDirectory();
-//        for (String s : directory.list()) {
-//            Log.d(TAG, s);
-//        }
 
         final SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(LoggerActivity.this);
         ToggleButton toggleButton = (ToggleButton) findViewById(R.id.toggleButton);
@@ -46,6 +34,12 @@ public class LoggerActivity extends Activity {
                 Intent service = new Intent(LoggerActivity.this, BubbleLoggerService.class);
 
                 if (checked) {
+                    EditText cmdEditTxt = (EditText) findViewById(R.id.command_EditText);
+                    EditText filterEditTxt = (EditText) findViewById(R.id.textFilterEditTxt);
+
+                    LoggerManager.LOGCAT_CMD = cmdEditTxt.getText().toString();
+                    LoggerManager.FILTER_TEXT = filterEditTxt.getText().toString();
+
                     startService(service);
                     preferences.edit().putBoolean(SERVICE_STARTED, true).apply();
                 } else {
@@ -58,7 +52,7 @@ public class LoggerActivity extends Activity {
 
     }
 
-    private void checkRootCommand() {
+  /* private void checkRootCommand() {
         try {
             Process p = Runtime.getRuntime().exec("mkdir testdir2", new String[]{"su"}, Environment.getExternalStorageDirectory());
             p.waitFor();
@@ -67,12 +61,32 @@ public class LoggerActivity extends Activity {
         }
     }
 
+    private void runCMD() {
+        try {
+            Runtime.getRuntime().exec("logcat -c").waitFor();
+            Process process = Runtime.getRuntime().exec("logcat -v long *:*");
+            BufferedReader reader =
+                    new BufferedReader(new InputStreamReader(process.getInputStream()));
+            run = true;
+            while (run) {
+                String nextLine = reader.readLine();
+                if (!nextLine.contains("LogWatcher-D")) {
+                    Log.w("LogWatcher-D", "See: " + nextLine);
+                }
+
+            }
+        } catch (InterruptedException | IOException e) {
+            e.printStackTrace();
+        }
+    }*/
+
     //    check permission
 //    check same certificate
 //    check same user id in manifest
 //    check system partion installed
 //    check version < 4.1+
 //    check root access granted permission
+  /*
     private void requestReadLogPermission() {
         String pname = getPackageName();
         if (getPackageManager().checkPermission(android.Manifest.permission.READ_LOGS, pname) != 0) {
@@ -95,6 +109,11 @@ public class LoggerActivity extends Activity {
             }
         } else
             Log.d(TAG, "we have the READ_LOGS permission already!");
-    }
+    }*/
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+//        run = false;
+    }
 }

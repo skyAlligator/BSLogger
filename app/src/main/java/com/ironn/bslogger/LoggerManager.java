@@ -13,12 +13,15 @@ import java.util.ArrayList;
  */
 public class LoggerManager extends Thread {
 
-    public static final String LOGCAT_CMD = "logcat";
     private static final String TAG = "LoggerManager";
+
+    public static String LOGCAT_CMD = "logcat";
+    public static String FILTER_TEXT = "";
+
     private static LoggerManager loggerManager;
     private boolean runLog = true;
     private LogListener logListener;
-    private int index;
+    public int index;
     private ArrayList<String> lines = new ArrayList<>();
 
     public static LoggerManager runLog(boolean runLog, LogListener logListener) {
@@ -35,8 +38,7 @@ public class LoggerManager extends Thread {
             loggerManager.logListener = logListener;
             loggerManager.new LogThread().start();
             loggerManager.start();
-        } else
-            Log.d(TAG, "log already Running");
+        }
 
         return loggerManager;
     }
@@ -54,12 +56,21 @@ public class LoggerManager extends Thread {
         while (runLog) {
 
             int size = lines.size();
-            if (logListener != null)
+            if (logListener != null) {
+                StringBuilder builder = new StringBuilder();
                 for (; index < size; index++) {
-                    logListener.updateLog(lines.get(index));
+                    String line = lines.get(index);
+
+                    if (line != null && !line.isEmpty()) {
+                        if (line.toLowerCase().contains(FILTER_TEXT.toLowerCase()))
+                            builder.append(line);
+                    } else
+                        builder.append(line);
                 }
+                logListener.updateLog(builder.toString());
+            }
             try {
-                sleep(1000);
+                sleep(500);
             } catch (InterruptedException ignored) {
             }
         }
@@ -96,6 +107,7 @@ public class LoggerManager extends Thread {
         private void getLog() {
             BufferedReader bufferedReader = null;
             try {
+                Runtime.getRuntime().exec("logcat -c").waitFor();
                 Process process = Runtime.getRuntime().exec(LOGCAT_CMD);
                 bufferedReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
                 String line;
@@ -103,6 +115,15 @@ public class LoggerManager extends Thread {
                     if (!line.isEmpty())
                         lines.add(line + "\n");
                     if (!runLog) break;
+
+                    try {
+                        sleep(10);
+                    } catch (InterruptedException ignored) {
+                    }
+                    if (lines.size() > 100) {
+                        lines.remove(0);
+                        index--;
+                    }
                 }
             } catch (Exception e) {
                 Log.d(TAG, e.toString());
@@ -113,7 +134,6 @@ public class LoggerManager extends Thread {
                     } catch (IOException ignored) {
                     }
             }
-            Log.d(TAG, "stream closed ");
         }
     }
 

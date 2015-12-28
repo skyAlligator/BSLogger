@@ -8,11 +8,17 @@ import android.graphics.PixelFormat;
 import android.os.Handler;
 import android.os.IBinder;
 import android.support.annotation.NonNull;
+import android.text.Editable;
+import android.text.TextWatcher;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.WindowManager;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
+import android.widget.EditText;
+import android.widget.SeekBar;
 import android.widget.TextView;
 
 public class BubbleLoggerService extends Service implements LoggerManager.LogListener, LogBubble.LongHoldListener {
@@ -78,8 +84,27 @@ public class BubbleLoggerService extends Service implements LoggerManager.LogLis
         LayoutInflater inflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
         layout = inflater.inflate(R.layout.logger_layout, null, false);
         logTextView = (TextView) layout.findViewById(R.id.main_logTextView);
+        SeekBar alphaBar = (SeekBar) layout.findViewById(R.id.alpha_seekBar);
         Button closeButton = (Button) layout.findViewById(R.id.logger_layout_button);
 
+        alphaBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
+                float percentage = (float) i / seekBar.getMax();
+                if (percentage < 0.3f) return;
+                layout.setAlpha(percentage);
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
+            }
+        });
         closeButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
