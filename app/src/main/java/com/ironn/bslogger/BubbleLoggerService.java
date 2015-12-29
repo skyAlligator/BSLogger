@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.PixelFormat;
+import android.graphics.Point;
 import android.os.Handler;
 import android.os.IBinder;
 import android.support.annotation.NonNull;
@@ -59,8 +60,11 @@ public class BubbleLoggerService extends Service implements LoggerManager.LogLis
     private void addLogView() {
         if (logViewAdded)
             return;
-
-        windowManager.addView(layout, getWindowManagerParams(0, 0, 1500, 1000));
+        Point outSize = new Point();
+        windowManager.getDefaultDisplay().getSize(outSize);
+        int sizeX = (int) (outSize.x * (70f / 100));
+        int sizeY = (int) (outSize.y * (90f / 100));
+        windowManager.addView(layout, getWindowManagerParams(0, 0, sizeX, sizeY));
         LoggerManager.runLog(true, BubbleLoggerService.this);
         logViewAdded = true;
     }
