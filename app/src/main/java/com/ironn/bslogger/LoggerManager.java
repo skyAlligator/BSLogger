@@ -19,9 +19,9 @@ public class LoggerManager extends Thread {
     public static String FILTER_TEXT = "";
 
     private static LoggerManager loggerManager;
+    public int index;
     private boolean runLog = true;
     private LogListener logListener;
-    public int index;
     private ArrayList<String> lines = new ArrayList<>();
 
     public static LoggerManager runLog(boolean runLog, LogListener logListener) {
@@ -59,13 +59,19 @@ public class LoggerManager extends Thread {
             if (logListener != null) {
                 StringBuilder builder = new StringBuilder();
                 for (; index < size; index++) {
-                    String line = lines.get(index);
 
-                    if (line != null && !line.isEmpty()) {
-                        if (line.toLowerCase().contains(FILTER_TEXT.toLowerCase()))
+                    try {
+                        String line = lines.get(index);
+
+                        if (line != null && !line.isEmpty()) {
+                            if (line.toLowerCase().contains(FILTER_TEXT.toLowerCase()))
+                                builder.append(line);
+                        } else
                             builder.append(line);
-                    } else
-                        builder.append(line);
+                    } catch (Exception e) {
+                        Log.d(TAG, "bs logger error ignored : " + e.toString());
+                        break;
+                    }
                 }
                 logListener.updateLog(builder.toString());
             }

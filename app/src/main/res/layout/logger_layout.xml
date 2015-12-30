@@ -20,7 +20,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/app_name"
-            android:textColor="#680606" />
+            android:textColor="#000000"
+            android:textStyle="bold" />
     </ScrollView>
 
     <Button
@@ -34,7 +35,7 @@
         android:text="@string/close_log"
         android:textColor="#230606" />
 
-    <SeekBar
+    <!--<SeekBar
         android:id="@+id/alpha_seekBar"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -46,6 +47,6 @@
         android:layout_toRightOf="@+id/logger_layout_button"
         android:focusable="true"
         android:focusableInTouchMode="true"
-        android:progress="100" />
+        android:progress="100" />-->
 
 </RelativeLayout>

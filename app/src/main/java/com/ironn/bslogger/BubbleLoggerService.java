@@ -1,6 +1,8 @@
 package com.ironn.bslogger;
 
+import android.app.ActivityManager;
 import android.app.Service;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
@@ -21,6 +23,8 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.SeekBar;
 import android.widget.TextView;
+
+import java.util.List;
 
 public class BubbleLoggerService extends Service implements LoggerManager.LogListener, LogBubble.LongHoldListener {
 
@@ -88,10 +92,10 @@ public class BubbleLoggerService extends Service implements LoggerManager.LogLis
         LayoutInflater inflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
         layout = inflater.inflate(R.layout.logger_layout, null, false);
         logTextView = (TextView) layout.findViewById(R.id.main_logTextView);
-        SeekBar alphaBar = (SeekBar) layout.findViewById(R.id.alpha_seekBar);
+//        SeekBar alphaBar = (SeekBar) layout.findViewById(R.id.alpha_seekBar);
         Button closeButton = (Button) layout.findViewById(R.id.logger_layout_button);
 
-        alphaBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+        /*alphaBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
                 float percentage = (float) i / seekBar.getMax();
@@ -108,7 +112,7 @@ public class BubbleLoggerService extends Service implements LoggerManager.LogLis
             public void onStopTrackingTouch(SeekBar seekBar) {
 
             }
-        });
+        });*/
         closeButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
